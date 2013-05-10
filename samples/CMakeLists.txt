@@ -165,7 +165,7 @@ set(GL_SHADER_GTC image-2d.vert image-2d.frag)
 glCreateSampleGTC(sampler-object)
 set(GL_SHADER_GTC texture-2d.vert texture-2d.frag)
 glCreateSampleGTC(sampler-wrap)
-set(GL_SHADER_GTC texture-integer.vert texture-integer.frag)
+set(GL_SHADER_GTC texture-integer.vert texture-integer-10bit.frag)
 glCreateSampleGTC(texture-integer-rgb10a2ui)
 
 # OpenGL 4.0 samples

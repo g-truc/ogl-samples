@@ -15,8 +15,8 @@ namespace
 {
 	char const * SAMPLE_NAME("OpenGL Texture Integer RGB10A2UI");
 	char const * VERT_SHADER_SOURCE("gl-330/texture-integer.vert");
-	char const * FRAG_SHADER_SOURCE("gl-330/texture-integer.frag");
-	char const * TEXTURE_DIFFUSE("kueken1-bgr8.dds");
+	char const * FRAG_SHADER_SOURCE("gl-330/texture-integer-10bit.frag");
+	char const * TEXTURE_DIFFUSE("kueken1-rgb10a2.dds");
 	int const SAMPLE_SIZE_WIDTH(640);
 	int const SAMPLE_SIZE_HEIGHT(480);
 	int const SAMPLE_MAJOR_VERSION(3);
@@ -106,10 +106,9 @@ bool initTexture()
 {
 	gli::texture2D Texture(gli::loadStorageDDS(glf::DATA_DIRECTORY + TEXTURE_DIFFUSE));
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
 	glGenTextures(1, &TextureName);
 
+	// Default unpack alignment of 4 is ok, we have 32 bit per pixel.
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TextureName);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
@@ -117,22 +116,16 @@ bool initTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	for(std::size_t Level = 0; Level < Texture.levels(); ++Level)
-	{
-		glTexImage2D(
-			GL_TEXTURE_2D, 
-			GLint(Level), 
-			GL_RGB10_A2UI, 
-			GLsizei(Texture[Level].dimensions().x), 
-			GLsizei(Texture[Level].dimensions().y), 
-			0,
-			GL_BGR_INTEGER, 
-			GL_UNSIGNED_BYTE, 
-			Texture[Level].data());
-	}
-	glGenerateMipmap(GL_TEXTURE_2D);
-	
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glTexImage2D(
+		GL_TEXTURE_2D, 
+		0, 
+		GL_RGB10_A2UI, 
+		GLsizei(Texture[0].dimensions().x), 
+		GLsizei(Texture[0].dimensions().y), 
+		0,
+		GL_BGRA_INTEGER, 
+		GL_UNSIGNED_INT_2_10_10_10_REV, 
+		Texture[0].data());
 
 	return glf::checkError("initTexture");
 }
