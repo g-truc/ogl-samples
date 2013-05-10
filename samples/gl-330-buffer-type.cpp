@@ -28,7 +28,7 @@ namespace
 			x(int(511.0f * x)),
 			y(int(511.0f * y)),
 			z(int(511.0f * z)),
-			w(0)
+			w(1)
 		{}
 
 		operator glm::vec3()
@@ -234,7 +234,7 @@ bool initVertexArray()
 
 	glBindVertexArray(VertexArrayName[buffer::RGB10A2]);
 		glBindBuffer(GL_ARRAY_BUFFER, BufferName[buffer::RGB10A2]);
-		glVertexAttribPointer(glf::semantic::attr::POSITION, 4, GL_INT_2_10_10_10_REV, GL_FALSE, sizeof(i10i10i10i2), GLF_BUFFER_OFFSET(0));
+		glVertexAttribPointer(glf::semantic::attr::POSITION, 4, GL_INT_2_10_10_10_REV, GL_TRUE, sizeof(i10i10i10i2), GLF_BUFFER_OFFSET(0));
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glEnableVertexAttribArray(glf::semantic::attr::POSITION);
