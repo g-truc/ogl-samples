@@ -1,7 +1,7 @@
 #ifndef GLF_WINDOW_INCLUDED
 #define GLF_WINDOW_INCLUDED
 
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 
 namespace glf
 {

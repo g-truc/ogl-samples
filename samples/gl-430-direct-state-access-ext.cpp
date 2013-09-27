@@ -192,16 +192,17 @@ bool initVertexArray()
 	GLuint Bindingindex(0);
 
 	glGenVertexArrays(1, &VertexArrayName);
-	glVertexArrayBindVertexBufferEXT(VertexArrayName, Bindingindex, BufferName[buffer::VERTEX], 0, sizeof(glf::vertex_v2fv2f));
+    glBindVertexBuffer( Bindingindex, BufferName[buffer::VERTEX], 0, sizeof(glf::vertex_v2fv2f));
 
-	glVertexArrayVertexAttribBindingEXT(VertexArrayName, glf::semantic::attr::POSITION, Bindingindex);
-	glVertexArrayVertexAttribFormatEXT(VertexArrayName, glf::semantic::attr::POSITION, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexAttribBinding( glf::semantic::attr::POSITION, Bindingindex);
+    glVertexAttribFormat( glf::semantic::attr::POSITION, 2, GL_FLOAT, GL_FALSE, 0);
 
-	glVertexArrayVertexAttribBindingEXT(VertexArrayName, glf::semantic::attr::TEXCOORD, Bindingindex);
-	glVertexArrayVertexAttribFormatEXT(VertexArrayName, glf::semantic::attr::TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2));
+    glVertexAttribBinding( glf::semantic::attr::TEXCOORD, Bindingindex);
+    glVertexAttribFormat( glf::semantic::attr::TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2));
 
-	glEnableVertexArrayAttribEXT(VertexArrayName, glf::semantic::attr::POSITION);
-	glEnableVertexArrayAttribEXT(VertexArrayName, glf::semantic::attr::TEXCOORD);
+    glEnableVertexAttribArray( glf::semantic::attr::POSITION);
+    glEnableVertexAttribArray( glf::semantic::attr::TEXCOORD);
+
 
 	return true;
 }

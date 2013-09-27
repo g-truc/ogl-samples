@@ -3,7 +3,7 @@
 
 //#include <glo/glo.hpp>
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 #include "common.hpp"
 #include "vertex.hpp"

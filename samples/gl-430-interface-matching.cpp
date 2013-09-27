@@ -144,10 +144,10 @@ bool initVertexArray()
 	glGenVertexArrays(1, &VertexArrayName);
 	glBindVertexArray(VertexArrayName);
 		glBindBuffer(GL_ARRAY_BUFFER, BufferName[buffer::VERTEX]);
-		glVertexAttribPointer(glf::semantic::attr::POSITION + 0, 2, GL_FLOAT, GL_FALSE, sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(0));
-		glVertexAttribPointer(glf::semantic::attr::POSITION + 1, 2, GL_FLOAT, GL_FALSE, sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(0));
-		glVertexAttribLPointer(glf::semantic::attr::COLOR, 4, GL_DOUBLE, sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(sizeof(glm::vec2)));
-		//glVertexAttribLPointer(glf::semantic::attr::COLOR, 4, GL_DOUBLE, sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(sizeof(glm::vec2)));
+		glVertexAttribPointer(glf::semantic::attr::POSITION + 0, 2, GL_FLOAT, GL_FALSE,(GLint) sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(0));
+		glVertexAttribPointer(glf::semantic::attr::POSITION + 1, 2, GL_FLOAT, GL_FALSE,(GLint) sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(0));
+		glVertexAttribLPointer(glf::semantic::attr::COLOR, 4, GL_DOUBLE, (GLint)sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(sizeof(glm::vec2)));
+		//glVertexAttribLPointer(glf::semantic::attr::COLOR, 4, GL_DOUBLE, (GLint)sizeof(glf::vertex_v2fc4d), GLF_BUFFER_OFFSET(sizeof(glm::vec2)));
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glEnableVertexAttribArray(glf::semantic::attr::POSITION + 0);
@@ -156,9 +156,10 @@ bool initVertexArray()
 	glBindVertexArray(0);
 
 	std::vector<glf::vertexattrib> Valid(16); 
-	Valid[glf::semantic::attr::POSITION + 0] = glf::vertexattrib(GL_TRUE, 2, sizeof(glf::vertex_v2fc4d), GL_FLOAT, GL_FALSE, GL_FALSE, GL_FALSE, 0, NULL);
-	Valid[glf::semantic::attr::POSITION + 1] = glf::vertexattrib(GL_TRUE, 2, sizeof(glf::vertex_v2fc4d), GL_FLOAT, GL_FALSE, GL_FALSE, GL_FALSE, 0, NULL);
-	Valid[glf::semantic::attr::COLOR] = glf::vertexattrib(GL_TRUE, 4, sizeof(glf::vertex_v2fc4d), GL_DOUBLE, GL_FALSE, GL_FALSE, GL_FALSE, 0, GLF_BUFFER_OFFSET(sizeof(glm::vec2)));
+	Valid[glf::semantic::attr::POSITION + 0] = glf::vertexattrib(GL_TRUE, 2, (GLint)sizeof(glf::vertex_v2fc4d), GL_FLOAT, GL_FALSE, GL_FALSE, GL_FALSE, 0, 0, NULL);
+	Valid[glf::semantic::attr::POSITION + 1] = glf::vertexattrib(GL_TRUE, 2, (GLint)sizeof(glf::vertex_v2fc4d), GL_FLOAT, GL_FALSE, GL_FALSE, GL_FALSE, 0, 0, NULL);
+	Valid[glf::semantic::attr::COLOR]        = glf::vertexattrib(GL_TRUE, 4, (GLint)sizeof(glf::vertex_v2fc4d), GL_FLOAT, GL_FALSE, GL_FALSE, GL_FALSE, 0, 0, NULL);
+	//Valid[glf::semantic::attr::COLOR]        = glf::vertexattrib(GL_TRUE, 4, (GLint)sizeof(glf::vertex_v2fc4d), GL_DOUBLE, GL_FALSE, GL_FALSE, GL_FALSE, 0, GLF_BUFFER_OFFSET(sizeof(glm::vec2)),NULL);
 
 	// TODO
 	//glf::validateVAO(VertexArrayName, Valid);

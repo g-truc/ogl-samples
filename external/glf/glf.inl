@@ -1,4 +1,4 @@
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 bool check();
 bool begin();
@@ -12,6 +12,7 @@ void display();
 
 namespace glf
 {
+	static GLFWwindow* glf_window = NULL;
 	inline void logImplementationDependentLimit(GLenum Value, std::string const & String)
 	{
 		GLint Result(0);
@@ -24,7 +25,7 @@ namespace glf
 
 	inline void swapBuffers()
 	{
-		glfwSwapBuffers();
+		glfwSwapBuffers(glf_window);
 		//assert(glGetError() == GL_NO_ERROR); // 'glutSwapBuffers' generates an here with OpenGL 3 > core profile ... :/
 	}
 
@@ -34,6 +35,9 @@ namespace glf
 		GLint MinorVersionContext = 0;
 		glGetIntegerv(GL_MAJOR_VERSION, &MajorVersionContext);
 		glGetIntegerv(GL_MINOR_VERSION, &MinorVersionContext);
+		printf("OpenGL Version Needed %d.%d ( %d.%d Found )\n",
+			MajorVersionRequire, MinorVersionRequire,
+			MajorVersionContext,MinorVersionContext);
 		return glf::version(MajorVersionContext, MinorVersionContext) 
 			>= glf::version(MajorVersionRequire, MinorVersionRequire);
 	}
@@ -45,6 +49,7 @@ namespace glf
 		for(GLint i = 0; i < ExtensionCount; ++i)
 			if(std::string((char const*)glGetStringi(GL_EXTENSIONS, i)) == std::string(String))
 				return true;
+		printf("Failed to find Extension: \"%s\"\n",String);
 		return false;
 	}
 
@@ -225,14 +230,14 @@ namespace glf
 	}
 */
 #endif
-	static void cursor_position_callback(int x, int y)
+	static void cursor_position_callback(GLFWwindow* pWindow,double x, double y)
 	{
 		Window.MouseCurrent = glm::ivec2(x, y);
 		Window.TranlationCurrent = Window.MouseButtonFlags & glf::MOUSE_BUTTON_LEFT ? Window.TranlationOrigin + (Window.MouseCurrent - Window.MouseOrigin) / 10.f : Window.TranlationOrigin;
 		Window.RotationCurrent = Window.MouseButtonFlags & glf::MOUSE_BUTTON_RIGHT ? Window.RotationOrigin + (Window.MouseCurrent - Window.MouseOrigin) : Window.RotationOrigin;
 	}
 
-	static void mouse_button_callback(int Button, int Action)
+	static void mouse_button_callback (GLFWwindow* pWindow, int Button, int Action, int mods)
 	{
 		switch(Action)
 		{
@@ -288,7 +293,7 @@ namespace glf
 		}
 	}
 
-	static void GLFWCALL key_callback(int key, int action)
+	static void key_callback( GLFWwindow* pWindow, int key, int scancode, int action, int mods)
 	{
 		switch(action)
 		{
@@ -304,15 +309,15 @@ namespace glf
 			}
 		}
 
-		if(Window.KeyPressed[GLFW_KEY_ESC] == 1)
-			end();
+		if(Window.KeyPressed[GLFW_KEY_ESCAPE] == 1)
+		{
+	        glfwSetWindowShouldClose(pWindow, GL_TRUE);
+        }
 	}
 
-	static int GLFWCALL close_callback()
+	static void close_callback(GLFWwindow* pWindow)
 	{
-		Window.KeyPressed[GLFW_KEY_ESC] = 1;
-		end();
-		return GL_FALSE;
+        glfwSetWindowShouldClose(pWindow, GL_TRUE);
 	}
 
 	inline int run
@@ -325,59 +330,63 @@ namespace glf
 	{
 		glfwInit();
 
-		glfwEnable(GLFW_AUTO_POLL_EVENTS); /* No explicit call to glfwPollEvents() */
 
-		glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE);
 		if(version(Major, Minor) >= version(3, 2))
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, Major);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, Minor);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Major);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Minor);
 
 #			if defined(__APPLE__)
-				glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #			elif defined(__INTEL__)
-				glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #			else
-				glfwOpenWindowHint(GLFW_OPENGL_PROFILE, Profile == GLF_CONTEXT_CORE_PROFILE_BIT ? GLFW_OPENGL_CORE_PROFILE : GLFW_OPENGL_COMPAT_PROFILE);
-				glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, Profile == GLF_CONTEXT_CORE_PROFILE_BIT ? GL_TRUE : GL_FALSE);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, Profile == GLF_CONTEXT_CORE_PROFILE_BIT ? GLFW_OPENGL_CORE_PROFILE : GLFW_OPENGL_COMPAT_PROFILE);
+				glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, Profile == GLF_CONTEXT_CORE_PROFILE_BIT ? GL_TRUE : GL_FALSE);
 #			endif
 
 #			if defined(NDEBUG)
-				glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 #			else
-				glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #			endif
 		}
-		GLboolean Result = glfwOpenWindow(Size.x, Size.y, 0, 0, 0, 0, 24, 0, GLFW_WINDOW);
-		assert(Result == GL_TRUE);
+	    glfwWindowHint(GLFW_DEPTH_BITS,24);
+		glf_window = glfwCreateWindow(Size.x, Size.y, "GLFW: Sample Window", NULL,NULL);
+		assert(glf_window!= NULL);
 
-		glfwSetWindowTitle(argv[0]);
-		glfwSetMouseButtonCallback(mouse_button_callback);
-		glfwSetMousePosCallback(cursor_position_callback);
-		glfwSetWindowCloseCallback(close_callback);
-		glfwSetKeyCallback(key_callback);
-
+		glfwSetWindowTitle(glf_window,argv[0]);
+		glfwSetMouseButtonCallback(glf_window,mouse_button_callback);
+		glfwSetCursorPosCallback(glf_window,cursor_position_callback);
+		glfwSetWindowCloseCallback(glf_window,close_callback);
+		glfwSetKeyCallback(glf_window,key_callback);
+		glfwMakeContextCurrent(glf_window);
 		//gl::init();
 		glewExperimental = GL_TRUE;
 		glewInit();
 		glGetError();
 
 		bool Run = begin();
-
+		printf("Running Test\n");
 		if(Run)
 		{
 			while(true)
 			{
-				if(Window.KeyPressed[GLFW_KEY_ESC] == 1)
-					break;
 				display();
+		        // Wait for new events
+		        glfwWaitEvents();
+				if(glfwWindowShouldClose(glf_window))
+					break;
 			}
 		}
+		printf("Test Ended\n");
 
+		if(Run) {
+				printf("Test Began Correctly.\n");
+		}
+		// Also Exits Program
 		glfwTerminate();
-
 		exit(EXIT_SUCCESS);
-
 		return Run ? 0 : 1;
 	}
 
