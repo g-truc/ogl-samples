@@ -1,4 +1,3 @@
-#include <GLFW/glfw3.h>
 
 bool check();
 bool begin();
@@ -123,7 +122,6 @@ namespace glf
 		return Result;
 	}
 
-	#if !defined(__APPLE__)
 	static void APIENTRY debugOutput
 	(
 		GLenum source,
@@ -229,7 +227,7 @@ namespace glf
 			delete [] messageLog;
 	}
 */
-#endif
+
 	static void cursor_position_callback(GLFWwindow* pWindow,double x, double y)
 	{
 		Window.MouseCurrent = glm::ivec2(x, y);
@@ -315,11 +313,6 @@ namespace glf
 		}
 	}
 
-	static void close_callback(GLFWwindow* pWindow)
-	{
-		glfwSetWindowShouldClose(pWindow, GL_TRUE);
-	}
-
 	inline int run
 	(
 		int argc, char* argv[], 
@@ -351,14 +344,11 @@ namespace glf
 				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #			endif
 		}
-		glfwWindowHint(GLFW_DEPTH_BITS,24);
-		glf_window = glfwCreateWindow(Size.x, Size.y, "GLFW: Sample Window", NULL,NULL);
+		glf_window = glfwCreateWindow(Size.x, Size.y, argv[0], NULL,NULL);
 		assert(glf_window!= NULL);
 
-		glfwSetWindowTitle(glf_window,argv[0]);
 		glfwSetMouseButtonCallback(glf_window,mouse_button_callback);
 		glfwSetCursorPosCallback(glf_window,cursor_position_callback);
-		glfwSetWindowCloseCallback(glf_window,close_callback);
 		glfwSetKeyCallback(glf_window,key_callback);
 		glfwMakeContextCurrent(glf_window);
 

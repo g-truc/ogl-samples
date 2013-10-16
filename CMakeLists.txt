@@ -13,19 +13,6 @@ endif(CMAKE_CURRENT_SOURCE_DIR EQUAL CMAKE_CURRENT_BINARY_DIR)
 ################################
 # Add GLEXT 
 
-find_package(OpenGL)
-if(WIN32)
-	set(GL_LIBRARY OpenGL32.lib)
-elseif(APPLE)
-	set(GL_LIBRARY ${OPENGL_LIBRARY})
-elseif(UNIX)
-	set(GL_LIBRARY GL)
-endif(WIN32)
-
-if(NOT OPENGL_FOUND)
-	message("ERROR: OpenGL not found")
-endif(NOT OPENGL_FOUND)
-
 function(getKhronosGLHeader HEADER)
 	file(DOWNLOAD http://www.opengl.org/registry/api/GL/${HEADER}
 		khronos-headers/GL/${HEADER})
@@ -44,15 +31,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/khronos-headers/)
 set(GLEW_DIRECTORY glew-1.10.0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLEW_DIRECTORY}/include)
 
-if(APPLE)
-	find_library(GLEW_LIBRARY GLEW)
-else()
-	add_definitions(-DGLEW_STATIC)
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLEW_DIRECTORY}/include)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLEW_DIRECTORY})
-	set(GLEW_LIBRARY ${GLEW_LIBRARIES})
-	link_directories(${CMAKE_CURRENT_BINARY_DIR}/GLEW-prefix/)
-endif()
+add_definitions(-DGLEW_STATIC)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLEW_DIRECTORY}/include)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLEW_DIRECTORY})
 
 ################################
 # Add GLFW
@@ -60,24 +41,11 @@ endif()
 set(GLFW_DIRECTORY glfw-3.0.3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLFW_DIRECTORY}/include)
 
-if(APPLE)
-	find_library(GLFW_LIBRARY GLFW)
-else()
-	set(GLFW_INSTALL OFF)
-	set(GLFW_BUILD_EXAMPLES OFF)
-	set(GLFW_BUILD_TESTS OFF)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLFW_DIRECTORY})
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLFW_DIRECTORY}/include)
-	set(GLFW_LIBRARY ${GLFW_LIBRARIES})
-	list(APPEND GLFW_LIBRARY glfw3 ${GLFW_LIBRARIES} )
-endif()
-
-################################
-# Add Cocoa
-if(APPLE)
-	find_library(COCOA_LIBRARY cocoa)
-	find_library(IOKIT_LIBRARY iokit)
-endif()
+set(GLFW_INSTALL OFF CACHE STRING "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE STRING "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLFW_DIRECTORY})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${GLFW_DIRECTORY}/include)
 
 ################################
 # Add GLM 
@@ -146,16 +114,7 @@ set(EGL_LIBRARY libEGL)
 ################################
 # Add libraries to executables
 
-set(BINARY_FILES 
-	${GL_LIBRARY} 
-	GLEW
-	${GLEW_LIBRARIES}
-	glfw
-	${GLFW_LIBRARIES}
-	${GLM_LIBRARY} 
-	${GLI_LIBRARY}
-	${COCOA_LIBRARY}
-	${IOKIT_LIBRARY})
+set(BINARY_FILES GLEW glfw ${GLFW_LIBRARIES})
 
 ################################
 # Add output directory
@@ -202,8 +161,10 @@ if(OGL_SAMPLES_STATUS)
 endif()
 
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
-	add_definitions(-fpermissive)
+if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+	if (NOT APPLE)
+		add_definitions(-fpermissive)
+	endif()
 endif()
 ################################
 # Add definitions
