@@ -95,7 +95,7 @@ bool initProgram()
 
 		ProgramName[program::VERTEX] = glCreateProgram();
 
-		glObjectLabel(GL_PROGRAM, PipelineName, -1, "Vertex Program object");
+		glObjectLabel(GL_PROGRAM, ProgramName[program::VERTEX], -1, "Vertex Program object");
 
 		glProgramParameteri(ProgramName[program::VERTEX], GL_PROGRAM_SEPARABLE, GL_TRUE);
 		glAttachShader(ProgramName[program::VERTEX], VertShaderName);
@@ -104,7 +104,7 @@ bool initProgram()
 
 		ProgramName[program::FRAGMENT] = glCreateProgram();
 
-		glObjectLabel(GL_PROGRAM, PipelineName, -1, "Fragment Program object");
+		glObjectLabel(GL_PROGRAM, 	ProgramName[program::FRAGMENT], -1, "Fragment Program object");
 
 		glProgramParameteri(ProgramName[program::FRAGMENT], GL_PROGRAM_SEPARABLE, GL_TRUE);
 		glAttachShader(ProgramName[program::FRAGMENT], FragShaderName);
@@ -129,16 +129,17 @@ bool initBuffer()
 	bool Validated(true);
 
 	glGenBuffers(buffer::MAX, BufferName);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BufferName[buffer::ELEMENT]);
 
 	glObjectLabel(GL_BUFFER, BufferName[buffer::ELEMENT], -1, "Element Array Buffer object");
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BufferName[buffer::ELEMENT]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ElementSize, ElementData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+	glBindBuffer(GL_ARRAY_BUFFER, BufferName[buffer::VERTEX]);
+
 	glObjectLabel(GL_BUFFER, BufferName[buffer::VERTEX], -1, "Array Buffer object");
 
-	glBindBuffer(GL_ARRAY_BUFFER, BufferName[buffer::VERTEX]);
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -149,10 +150,10 @@ bool initBuffer()
 		&UniformBufferOffset);
 
 	GLint UniformBlockSize = glm::max(GLint(sizeof(glm::mat4)), UniformBufferOffset);
-
+	glBindBuffer(GL_UNIFORM_BUFFER, BufferName[buffer::TRANSFORM]);
+	
 	glObjectLabel(GL_BUFFER, BufferName[buffer::TRANSFORM], -1, "Uniform Buffer object");
 	
-	glBindBuffer(GL_UNIFORM_BUFFER, BufferName[buffer::TRANSFORM]);
 	glBufferData(GL_UNIFORM_BUFFER, UniformBlockSize, NULL, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
