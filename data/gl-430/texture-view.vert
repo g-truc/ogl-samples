@@ -29,6 +29,6 @@ out block
 void main()
 {	
 	Out.Texcoord = Texcoord;
-	Out.Instance = mediump int(gl_InstanceID);
+	Out.Instance = int(gl_InstanceID);
 	gl_Position = Transform.MVP * vec4(Position, 1.0);
 }
