@@ -15,7 +15,7 @@ struct vertex
 	vec2 Texcoord;
 };
 
-layout(binding = VERTEX) buffer mesh
+layout(std430, binding = VERTEX) buffer mesh
 {
 	vertex Vertex[];
 } Mesh;
