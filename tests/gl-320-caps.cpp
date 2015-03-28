@@ -50,9 +50,9 @@ private:
 		Validated = Validated && Caps.Limits.MAX_UNIFORM_BUFFER_BINDINGS >= 36;
 		Validated = Validated && Caps.Limits.MAX_UNIFORM_BLOCK_SIZE >= 16384;
 
-		Validated = Validated && Caps.Limits.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS >= ((Caps.Limits.MAX_VERTEX_UNIFORM_BLOCKS / 4 * Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_VERTEX_UNIFORM_COMPONENTS);
-		Validated = Validated && Caps.Limits.MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS >= ((Caps.Limits.MAX_GEOMETRY_UNIFORM_BLOCKS / 4 * Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_GEOMETRY_UNIFORM_COMPONENTS);
-		Validated = Validated && Caps.Limits.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS >= ((Caps.Limits.MAX_FRAGMENT_UNIFORM_BLOCKS / 4 * Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_FRAGMENT_UNIFORM_COMPONENTS);
+		Validated = Validated && Caps.Limits.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS >= ceil(((GLdouble)Caps.Limits.MAX_VERTEX_UNIFORM_BLOCKS / 4.0f * (GLdouble)Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_VERTEX_UNIFORM_COMPONENTS);
+		Validated = Validated && Caps.Limits.MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS >= ceil(((GLdouble)Caps.Limits.MAX_GEOMETRY_UNIFORM_BLOCKS / 4.0f * (GLdouble)Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_GEOMETRY_UNIFORM_COMPONENTS);
+		Validated = Validated && Caps.Limits.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS >= ceil(((GLdouble)Caps.Limits.MAX_FRAGMENT_UNIFORM_BLOCKS / 4.0f * (GLdouble)Caps.Limits.MAX_UNIFORM_BLOCK_SIZE) + Caps.Limits.MAX_FRAGMENT_UNIFORM_COMPONENTS);
 
 		return Validated;
 	}
