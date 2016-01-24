@@ -514,4 +514,5 @@ set(GL_SHADER_GTC texture-sparse-amd.vert texture-sparse-amd.frag texture-sparse
 glCreateSampleGTC(texture-sparse-amd)
 set(GL_SHADER_GTC texture-sparse-ext.vert texture-sparse-ext.frag)
 glCreateSampleGTC(texture-sparse-ext)
-
+set(GL_SHADER_GTC multicast-scene.vert multicast-scene.frag multicast-compose.vert multicast-compose.frag)
+glCreateSampleGTC(multicast-nv)
