@@ -340,9 +340,12 @@ private:
 		glm::mat4 View = ViewTranslate;
 		glm::mat4 Model = glm::mat4(1.0f);
 		glm::mat4 MVP = Projection * View * Model;
-
 		glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 		glViewport(0, 0, WindowSize.x, WindowSize.y);
+		glClearBufferfv(GL_COLOR, 0, &glm::vec4(0.5f)[0]);
+		glClearBufferfv(GL_COLOR, 1, &glm::vec4(0.5f)[1]);
+		glClearBufferfv(GL_COLOR, 2, &glm::vec4(0.5f)[2]);
+		glClearBufferfv(GL_COLOR, 3, &glm::vec4(0.5f)[3]);
 
 		glUseProgram(ProgramName[program::COLORBUFFERS]);
 		glUniformMatrix4fv(UniformMVPMultiple, 1, GL_FALSE, &MVP[0][0]);
