@@ -14,6 +14,12 @@ out block
 	vec4 Color;
 } Out;
 
+out gl_PerVertex
+{
+	vec4 gl_Position;
+	float gl_PointSize;
+};
+
 void main()
 {
 	Out.Color = Color;
