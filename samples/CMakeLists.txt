@@ -527,6 +527,8 @@ glCreateSampleGTC(conservative-raster-nv)
 
 set(GL_SHADER_GTC draw-shader-nv.task draw-shader-nv.mesh draw-shader-nv.frag)
 glCreateSampleGTC(draw-shader-nv)
+set(GL_SHADER_GTC draw-shader-instancing-nv.task draw-shader-instancing-nv.mesh draw-shader-instancing-nv.frag)
+glCreateSampleGTC(draw-shader-instancing-nv)
 
 set(GL_SHADER_GTC fbo-layered-viewport-nv.vert fbo-layered-viewport-nv.frag fbo-layered-layer-nv.vert fbo-layered-layer-nv.frag)
 glCreateSampleGTC(fbo-layered-nv)

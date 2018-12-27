@@ -79,51 +79,27 @@ PFNGLMULTIDRAWMESHTASKSINDIRECTCOUNTNVPROC glMultiDrawMeshTasksIndirectCountNV =
 
 namespace
 {
-	char const* TASK_SHADER_SOURCE("gl-500/draw-shader-nv.task");
-	char const* MESH_SHADER_SOURCE("gl-500/draw-shader-nv.mesh");
-	char const* FRAG_SHADER_SOURCE("gl-500/draw-shader-nv.frag");
+	char const* TASK_SHADER_SOURCE("gl-500/draw-shader-instancing-nv.task");
+	char const* MESH_SHADER_SOURCE("gl-500/draw-shader-instancing-nv.mesh");
+	char const* FRAG_SHADER_SOURCE("gl-500/draw-shader-instancing-nv.frag");
 	char const* TEXTURE_DIFFUSE("kueken7_rgb8_unorm.ktx");
 
-	struct chunk
-	{
-		unsigned int BaseVertex;
-		unsigned int BaseElement;
-		GLubyte ElementCount;
-		GLubyte PrimitiveCount;
-		GLubyte ObjectIndex;
-		GLubyte Padding;
-	};
-
-	GLsizei const VertexCount(8);
+	GLsizei const VertexCount(4);
 	GLsizeiptr const VertexSize = VertexCount * sizeof(glf::vertex_v2fv2f);
 	glf::vertex_v2fv2f const VertexData[VertexCount] =
 	{
 		glf::vertex_v2fv2f(glm::vec2(-1.0f,-1.0f), glm::vec2(0.0f, 1.0f)),
 		glf::vertex_v2fv2f(glm::vec2( 1.0f,-1.0f), glm::vec2(1.0f, 1.0f)),
 		glf::vertex_v2fv2f(glm::vec2( 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)),
-		glf::vertex_v2fv2f(glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
-		glf::vertex_v2fv2f(glm::vec2(-1.0f, 0.0f), glm::vec2(0.0f, 0.5f)),
-		glf::vertex_v2fv2f(glm::vec2(0.0f, -1.0f), glm::vec2(0.5f, 1.0f)),
-		glf::vertex_v2fv2f(glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 0.5f)),
-		glf::vertex_v2fv2f(glm::vec2(0.0f, 1.0f), glm::vec2(0.5f, 0.0f)),
+		glf::vertex_v2fv2f(glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 0.0f))
 	};
 
-	GLubyte const ElementData[] =
-	{
-		0, 1, 2,
-		2, 3, 0,
-		0, 1, 2,
-		2, 3, 0,
-	};
-	GLsizei const ElementCount = sizeof(ElementData) / sizeof(ElementData[0]);
+	GLsizei const ElementCount(6);
 	GLsizeiptr const ElementSize = ElementCount * sizeof(GLubyte);
-
-	GLsizei const ChunkCount(2);
-	GLsizeiptr const ChunkSize = ChunkCount * sizeof(chunk);
-	chunk const ChunkData[ChunkCount] =
+	GLubyte const ElementData[ElementCount] =
 	{
-		chunk{0, 0, 6, 2, 0, 0},
-		chunk{4, 6, 6, 2, 1, 0}
+		0, 1, 2,
+		2, 3, 0
 	};
 
 	namespace buffer
@@ -131,7 +107,6 @@ namespace
 		enum type
 		{
 			OBJECT,
-			CHUNK,
 			VERTEX,
 			ELEMENT,
 			TRANSFORM,
@@ -154,7 +129,7 @@ class sample : public framework
 {
 public:
 	sample(int argc, char* argv[])
-		: framework(argc, argv, "gl-500-draw-shader-nv", framework::CORE, 4, 6)
+		: framework(argc, argv, "gl-500-draw-shader-instancing-nv", framework::CORE, 4, 6)
 		, VertexArrayName(0)
 		, ProgramName(0)
 		, TextureName(0)
@@ -248,8 +223,8 @@ private:
 		GLsizeiptr const ObjectSize = ObjectCount * sizeof(glm::mat4);
 		glm::mat4 ObjectData[ObjectCount];
 
-		ObjectData[0] = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.5, 0, 0)), glm::vec3(0.5f));
-		ObjectData[1] = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-0.5, 0, 0)), glm::vec3(0.5f));
+		ObjectData[0] = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(1, 0, 0)), glm::vec3(0.5f));
+		ObjectData[1] = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-1, 0, 0)), glm::vec3(0.5f));
 
 		GLint UniformBufferOffset = 0;
 		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &UniformBufferOffset);
@@ -258,7 +233,6 @@ private:
 		glCreateBuffers(buffer::MAX, &BufferName[0]);
 		glNamedBufferStorage(BufferName[buffer::ELEMENT], ElementSize, ElementData, 0);
 		glNamedBufferStorage(BufferName[buffer::VERTEX], VertexSize, VertexData, 0);
-		glNamedBufferStorage(BufferName[buffer::CHUNK], ChunkSize, ChunkData, 0);
 		glNamedBufferStorage(BufferName[buffer::OBJECT], ObjectSize, ObjectData, 0);
 		glNamedBufferStorage(BufferName[buffer::TRANSFORM], UniformBlockSize, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 
@@ -350,8 +324,7 @@ private:
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, BufferName[buffer::TRANSFORM]);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, BufferName[buffer::ELEMENT]);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, BufferName[buffer::VERTEX]);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BufferName[buffer::CHUNK]);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, BufferName[buffer::OBJECT]);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BufferName[buffer::OBJECT]);
 
 		glDrawMeshTasksNV(0, 1);
 

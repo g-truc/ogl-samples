@@ -1,0 +1,76 @@
+#version 460 core
+#extension GL_NV_mesh_shader : enable
+#extension GL_NV_gpu_shader5 : enable
+
+precision highp float;
+precision highp int;
+layout(std140, column_major) uniform;
+layout(std430, column_major) buffer;
+
+layout(local_size_x = 4) in;
+layout(triangles) out;
+layout(max_vertices=4, max_primitives=2) out;
+
+taskNV in task
+{
+	uint ObjectIndex;
+} In;
+
+out uint gl_PrimitiveCountNV;
+out uint gl_PrimitiveIndicesNV[];
+
+layout(binding = 0) uniform transform
+{
+	mat4 VP;
+} Transform;
+
+layout(std430, binding = 0) buffer element
+{
+	uint8_t Data[];
+} Element;
+
+struct attrib
+{
+	vec2 Position;
+	vec2 Texcoord;
+};
+
+layout(std430, binding = 1) buffer vertex
+{
+	attrib Data[];
+} Vertex;
+
+struct objectData
+{
+	mat4 M;
+};
+
+layout(std430, binding = 2) buffer object
+{
+	objectData Data[];
+} Object;
+
+out gl_MeshPerVertexNV
+{
+	vec4  gl_Position;
+} gl_MeshVerticesNV[];
+
+out block
+{
+	vec2 Texcoord;
+} Out[];
+
+void main()
+{
+	if (gl_LocalInvocationID.x == 0)
+	{
+		gl_PrimitiveCountNV = 2;
+		for (uint i = 0; i < gl_PrimitiveIndicesNV.length(); ++i)
+			gl_PrimitiveIndicesNV[i] = (uint)Element.Data[i];
+	}
+
+	mat4 MVP = Transform.VP * Object.Data[gl_WorkGroupID.x].M;
+
+	Out[gl_LocalInvocationID.x].Texcoord = Vertex.Data[gl_LocalInvocationID.x].Texcoord;
+	gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = MVP * vec4(Vertex.Data[gl_LocalInvocationID.x].Position, 0.0, 1.0);
+}

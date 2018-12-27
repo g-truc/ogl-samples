@@ -8,8 +8,8 @@ layout(std140, column_major) uniform;
 layout(std430, column_major) buffer;
 
 layout(local_size_x = 4) in;
+layout(max_vertices = 4, max_primitives = 2) out;
 layout(triangles) out;
-layout(max_vertices=4, max_primitives=2) out;
 
 taskNV in task
 {
@@ -29,7 +29,7 @@ layout(std430, binding = 0) buffer element
 	uint8_t Data[];
 } Element;
 
-struct attrib
+struct attribData
 {
 	vec2 Position;
 	vec2 Texcoord;
@@ -37,15 +37,30 @@ struct attrib
 
 layout(std430, binding = 1) buffer vertex
 {
-	attrib Data[];
+	attribData Data[];
 } Vertex;
+
+struct chunkData
+{
+	uint BaseVertex;
+	uint BaseElement;
+	uint8_t ElementCount;
+	uint8_t PrimitiveCount;
+	uint8_t ObjectIndex;
+	uint8_t Padding;
+};
+
+layout(std430, binding = 2) buffer chunk
+{
+	chunkData Data[];
+} Chunk;
 
 struct objectData
 {
 	mat4 M;
 };
 
-layout(std430, binding = 2) buffer object
+layout(std430, binding = 3) buffer object
 {
 	objectData Data[];
 } Object;
@@ -62,17 +77,16 @@ out block
 
 void main()
 {
+	chunkData Chunk = Chunk.Data[gl_WorkGroupID.x];
 	if (gl_LocalInvocationID.x == 0)
-		gl_PrimitiveCountNV = 2;
+		gl_PrimitiveCountNV = Chunk.PrimitiveCount;
 
-//	for (uint i = 0; i < gl_PrimitiveIndicesNV.length(); i += gl_WorkGroupSize.x)
-//		gl_PrimitiveIndicesNV[i + gl_LocalInvocationID.x] = (uint)Element.Data[i + gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_PrimitiveIndicesNV.length()];
+	for (uint i = 0; i < Chunk.ElementCount; ++i)
+		gl_PrimitiveIndicesNV[i] = (uint)Element.Data[Chunk.BaseElement + i];
 
-	for (uint i = 0; i < gl_PrimitiveIndicesNV.length(); ++i)
-		gl_PrimitiveIndicesNV[i] = (uint)Element.Data[i];
+	mat4 MVP = Transform.VP * Object.Data[Chunk.ObjectIndex].M;
 
-	mat4 MVP = Transform.VP * Object.Data[gl_WorkGroupID.x].M;
-
-	Out[gl_LocalInvocationID.x].Texcoord = Vertex.Data[gl_LocalInvocationID.x].Texcoord;
-	gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = MVP * vec4(Vertex.Data[gl_LocalInvocationID.x].Position, 0.0, 1.0);
+	attribData Attrib = Vertex.Data[Chunk.BaseVertex + gl_LocalInvocationID.x];
+	Out[gl_LocalInvocationID.x].Texcoord = Attrib.Texcoord;
+	gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = MVP * vec4(Attrib.Position, 0.0, 1.0);
 }

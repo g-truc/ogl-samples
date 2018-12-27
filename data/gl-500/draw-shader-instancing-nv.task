@@ -1,0 +1,18 @@
+#version 460 core
+#extension GL_NV_mesh_shader : enable
+
+layout(local_size_x = 2) in;
+precision highp float;
+precision highp int;
+layout(std140, column_major) uniform;
+
+taskNV out task
+{
+	uint ObjectIndex;
+} Out;
+
+void main()
+{
+	gl_TaskCountNV = 2;
+	Out.ObjectIndex = 1;
+}
