@@ -554,6 +554,8 @@ set(GL_SHADER_GTC shader-group-nv.vert shader-group-nv.frag shader-group-blit-nv
 glCreateSampleGTC(shader-group-nv)
 set(GL_SHADER_GTC test-depth-clamp-separate.vert test-depth-clamp-separate.frag)
 glCreateSampleGTC(test-depth-clamp-separate-amd)
+set(GL_SHADER_GTC test-scissor-exclusive-nv.vert test-scissor-exclusive-nv.frag)
+glCreateSampleGTC(test-scissor-exclusive-nv)
 set(GL_SHADER_GTC texture-bindless.vert texture-bindless.frag)
 glCreateSampleGTC(texture-bindless-arb)
 set(GL_SHADER_GTC texture-bindless-nv.vert texture-bindless-nv.frag)

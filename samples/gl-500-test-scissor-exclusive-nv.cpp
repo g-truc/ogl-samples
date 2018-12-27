@@ -1,18 +1,24 @@
 #include "test.hpp"
 
+#define GL_SCISSOR_TEST_EXCLUSIVE_NV 0x9555
+
+typedef void (GLAPIENTRY * PFNGLSCISSOREXCLUSIVEARRAYVNVPROC) (GLuint first, GLsizei count, const GLint * v);
+
+PFNGLSCISSOREXCLUSIVEARRAYVNVPROC glScissorExclusiveArrayvNV = 0;
+
 namespace
 {
-	char const* VERT_SHADER_SOURCE("gl-460/texture-2d.vert");
-	char const* FRAG_SHADER_SOURCE("gl-460/texture-2d.frag");
-	char const* TEXTURE_DIFFUSE("kueken7_rgb8_unorm.ktx");
+	char const* VERT_SHADER_SOURCE("gl-500/test-scissor-exclusive-nv.vert");
+	char const* FRAG_SHADER_SOURCE("gl-500/test-scissor-exclusive-nv.frag");
+	char const* TEXTURE_DIFFUSE("kueken7_rgba8_srgb.dds");
 
 	GLsizei const VertexCount(4);
 	GLsizeiptr const VertexSize = VertexCount * sizeof(glf::vertex_v2fv2f);
 	glf::vertex_v2fv2f const VertexData[VertexCount] =
 	{
-		glf::vertex_v2fv2f(glm::vec2(-1.0f,-1.0f), glm::vec2(0.0f, 1.0f)),
-		glf::vertex_v2fv2f(glm::vec2( 1.0f,-1.0f), glm::vec2(1.0f, 1.0f)),
-		glf::vertex_v2fv2f(glm::vec2( 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)),
+		glf::vertex_v2fv2f(glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)),
+		glf::vertex_v2fv2f(glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)),
+		glf::vertex_v2fv2f(glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f)),
 		glf::vertex_v2fv2f(glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 0.0f))
 	};
 
@@ -40,7 +46,7 @@ class sample : public framework
 {
 public:
 	sample(int argc, char* argv[])
-		: framework(argc, argv, "gl-460-texture-2d", framework::CORE, 4, 6)
+		: framework(argc, argv, "gl-500-test-scissor-exclusive-nv", framework::CORE, 4, 6, glm::vec2(glm::pi<float>() * 0.2f))
 		, VertexArrayName(0)
 		, PipelineName(0)
 		, ProgramName(0)
@@ -55,6 +61,16 @@ private:
 	GLuint ProgramName;
 	GLuint TextureName;
 	glm::uint8* UniformPointer;
+
+	bool initExtensions()
+	{
+		if(!this->checkExtension("GL_NV_scissor_exclusive"))
+			return false;
+
+		glScissorExclusiveArrayvNV = (PFNGLSCISSOREXCLUSIVEARRAYVNVPROC)glfwGetProcAddress("glScissorExclusiveArrayvNV");
+
+		return true;
+	}
 
 	bool initProgram()
 	{
@@ -86,7 +102,7 @@ private:
 
 	bool initBuffer()
 	{
-		GLint UniformBufferOffset = 0;
+		GLint UniformBufferOffset(0);
 		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &UniformBufferOffset);
 		GLint UniformBlockSize = glm::max(GLint(sizeof(glm::mat4)), UniformBufferOffset);
 
@@ -103,34 +119,28 @@ private:
 
 	bool initTexture()
 	{
-		gli::texture2d Texture(gli::load((getDataDirectory() + TEXTURE_DIFFUSE).c_str()));
+		gli::texture2d Texture(gli::load_dds((getDataDirectory() + TEXTURE_DIFFUSE).c_str()));
 
 		gli::gl GL(gli::gl::PROFILE_GL32);
 		gli::gl::format const Format = GL.translate(Texture.format(), Texture.swizzles());
 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
 		glCreateTextures(GL_TEXTURE_2D, 1, &this->TextureName);
 		glTextureParameteri(this->TextureName, GL_TEXTURE_BASE_LEVEL, 0);
-		glTextureParameteri(this->TextureName, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(Texture.levels() - 1));
-		glTextureParameteri(this->TextureName, GL_TEXTURE_MIN_FILTER, Texture.levels() == 1 ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR);
+		glTextureParameteri(this->TextureName, GL_TEXTURE_MAX_LEVEL, GLint(Texture.levels() - 1));
+		glTextureParameteri(this->TextureName, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTextureParameteri(this->TextureName, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTextureParameteri(this->TextureName, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTextureParameteri(this->TextureName, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameterf(this->TextureName, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.f);
 
 		glTextureStorage2D(this->TextureName, static_cast<GLint>(Texture.levels()), Format.Internal, static_cast<GLsizei>(Texture.extent().x), static_cast<GLsizei>(Texture.extent().y));
-		for(gli::texture2d::size_type Level = 0; Level < Texture.levels(); ++Level)
+		for(std::size_t Level = 0; Level < Texture.levels(); ++Level)
 		{
-			gli::texture2d::extent_type const Extent = Texture[Level].extent();
-			glTextureSubImage2D(this->TextureName, static_cast<GLint>(Level),
+			glTextureSubImage2D(this->TextureName, GLint(Level),
 				0, 0,
-				static_cast<GLsizei>(Extent.x), static_cast<GLsizei>(Extent.y),
+				GLsizei(Texture[Level].extent().x), GLsizei(Texture[Level].extent().y),
 				Format.External, Format.Type,
 				Texture[Level].data());
 		}
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 		return true;
 	}
@@ -158,11 +168,13 @@ private:
 		bool Validated = true;
 
 		if(Validated)
+			Validated = initExtensions();
+		if(Validated)
+			Validated = initProgram();
+		if(Validated)
 			Validated = initBuffer();
 		if(Validated)
 			Validated = initTexture();
-		if(Validated)
-			Validated = initProgram();
 		if(Validated)
 			Validated = initVertexArray();
 
@@ -174,27 +186,49 @@ private:
 		glUnmapNamedBuffer(this->BufferName[buffer::TRANSFORM]);
 
 		glDeleteProgramPipelines(1, &this->PipelineName);
-		glDeleteProgram(this->ProgramName);
-		glDeleteBuffers(buffer::MAX, &this->BufferName[0]);
-		glDeleteTextures(1, &this->TextureName);
-		glDeleteVertexArrays(1, &this->VertexArrayName);
+		glDeleteBuffers(buffer::MAX, &BufferName[0]);
+		glDeleteProgram(ProgramName);
+		glDeleteTextures(1, &TextureName);
+		glDeleteVertexArrays(1, &VertexArrayName);
 
 		return true;
 	}
 
 	bool render()
 	{
-		glm::vec2 const WindowSize(this->getWindowSize());
+		glm::ivec2 WindowSize(this->getWindowSize());
 
-		glm::mat4 const Projection = glm::perspectiveFov(glm::pi<float>() * 0.25f, WindowSize.x, WindowSize.y, 0.1f, 100.0f);
-		glm::mat4 const Model = glm::mat4(1.0f);
-		*reinterpret_cast<glm::mat4*>(this->UniformPointer) = Projection * this->view() * Model;
+		glm::vec3 MinScissor( 10000.f);
+		glm::vec3 MaxScissor(-10000.f);
 
-		glDrawBuffer(GL_BACK);
-		glDisable(GL_FRAMEBUFFER_SRGB);
+		{
+			glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.0f);
+			glm::mat4 View = this->view();
+			glm::mat4 Model = glm::mat4(1.0f);
+		
+			*reinterpret_cast<glm::mat4*>(this->UniformPointer) = Projection * View * Model;
 
-		glViewport(0, 0, static_cast<GLsizei>(WindowSize.x), static_cast<GLsizei>(WindowSize.y));
+			glm::mat4 Ortho = glm::ortho(0.0f, 0.0f, float(WindowSize.x), float(WindowSize.y));
+			for(GLsizei i = 0; i < VertexCount; ++i)
+			{
+				glm::vec3 Projected = glm::project(
+					glm::vec3(VertexData[i].Position, 0.0f), 
+					View * Model, 
+					Projection, 
+					glm::ivec4(0, 0, WindowSize.x, WindowSize.y));
+
+				MinScissor = glm::min(MinScissor, glm::vec3(Projected));
+				MaxScissor = glm::max(MaxScissor, glm::vec3(Projected));
+			}
+		}
+
+		glViewport(0, 0, WindowSize.x, WindowSize.y);
 		glClearBufferfv(GL_COLOR, 0, &glm::vec4(1.0f, 0.5f, 0.0f, 1.0f)[0]);
+
+		GLint const Scissor[] = {GLint(MinScissor.x), GLint(MinScissor.y), GLsizei(MaxScissor.x - MinScissor.x), GLsizei(MaxScissor.y - MinScissor.y)};
+		glScissorExclusiveArrayvNV(0, 1, Scissor);
+		glEnable(GL_SCISSOR_TEST_EXCLUSIVE_NV);
+		glClearBufferfv(GL_COLOR, 0, &glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)[0]);
 
 		glBindProgramPipeline(this->PipelineName);
 		glBindTextureUnit(0, this->TextureName);
@@ -202,6 +236,8 @@ private:
 		glBindVertexArray(VertexArrayName);
 
 		glDrawElementsInstancedBaseVertex(GL_TRIANGLES, ElementCount, GL_UNSIGNED_SHORT, 0, 1, 0);
+
+		glDisable(GL_SCISSOR_TEST_EXCLUSIVE_NV);
 
 		return true;
 	}
@@ -216,3 +252,4 @@ int main(int argc, char* argv[])
 
 	return Error;
 }
+
