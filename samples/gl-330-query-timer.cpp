@@ -1,4 +1,6 @@
 #include "test.hpp"
+#include <chrono>
+#include <ratio>
 
 namespace
 {
@@ -17,27 +19,60 @@ namespace
 		glm::vec2(-1.0f,-1.0f)
 	};
 
-	GLuint VertexArrayName = 0;
-	GLuint ProgramName = 0;
-	GLuint BufferName = 0;
-	GLuint QueryName = 0;
-	GLint UniformMVP = 0;
-	GLint UniformColor = 0;
+	enum synchronization
+	{
+		SYNC_EXEC,
+		SYNC_RENDER,
+		SYNC_COUNT
+	};
+
+	enum timer
+	{
+		TIMER_RENDER,
+		TIMER_CLEAR,
+		TIMER_DRAW,
+		TIMER_COUNT
+	};
+
+	char const* queryTitle[]
+	{
+		"RENDER",
+		"CLEAR",
+		"DRAW"
+	};
 }//namespace
 
 class sample : public framework
 {
 public:
-	sample(int argc, char* argv[]) :
-		framework(argc, argv, "gl-330-query-timer", framework::CORE, 3, 3)
+	sample(int argc, char* argv[])
+		: framework(argc, argv, "gl-330-query-timer", framework::CORE, 3, 3)
+		, VertexArrayName(0)
+		, ProgramName(0)
+		, BufferName(0)
+		, UniformMVP(0)
+		, UniformColor(0)
 	{}
 
 private:
+	GLuint VertexArrayName;
+	GLuint ProgramName;
+	GLuint BufferName;
+	std::array<double, SYNC_COUNT> SyncGPUTime;
+	std::array<std::chrono::high_resolution_clock::time_point, SYNC_COUNT> SyncCPUTime;
+	std::array<GLuint, TIMER_COUNT> QueryName;
+	std::array<double, TIMER_COUNT> QueryGPUTime;
+	std::array<double, TIMER_COUNT> QueryCPUTime;
+	std::array<std::chrono::high_resolution_clock::time_point, TIMER_COUNT> QueryCPUTimeBegin;
+	std::array<std::chrono::high_resolution_clock::time_point, TIMER_COUNT> QueryCPUTimeEnd;
+	GLint UniformMVP;
+	GLint UniformColor;
+
 	bool initQuery()
 	{
-		glGenQueries(1, &QueryName);
+		glGenQueries(TIMER_COUNT, &QueryName[0]);
 
-		int QueryBits(0);
+		int QueryBits = 0;
 		glGetQueryiv(GL_TIME_ELAPSED, GL_QUERY_COUNTER_BITS, &QueryBits);
 
 		bool Validated = QueryBits >= 30;
@@ -105,6 +140,46 @@ private:
 		return this->checkError("initVertexArray");
 	}
 
+	void syncTimeQuery(synchronization Sync)
+	{
+		GLint64 TimeGPU = 0;
+		glGetInteger64v(GL_TIMESTAMP, &TimeGPU);
+		this->SyncGPUTime[Sync] = static_cast<double>(TimeGPU) / 1000.0 / 1000.0;
+		this->SyncCPUTime[Sync] = std::chrono::high_resolution_clock::now();
+	}
+
+	void beginTimeQuery(timer Timer)
+	{
+		glBeginQuery(GL_TIME_ELAPSED, this->QueryName[Timer]);
+		this->QueryCPUTimeBegin[Timer] = std::chrono::high_resolution_clock::now();
+	}
+
+	void endTimeQuery(timer Timer)
+	{
+		glEndQuery(GL_TIME_ELAPSED);
+		this->QueryCPUTimeEnd[Timer] = std::chrono::high_resolution_clock::now();
+	}
+
+	void queryTimeQuery(timer Timer)
+	{
+		GLint64 TimeGPU = 0;
+		glGetQueryObjecti64v(QueryName[Timer], GL_QUERY_RESULT, &TimeGPU);
+		this->QueryGPUTime[Timer] = static_cast<double>(TimeGPU) / 1000.0 / 1000.0;
+		std::chrono::duration<double, std::milli> const Duration = this->QueryCPUTimeEnd[Timer] - this->QueryCPUTimeBegin[Timer];
+		this->QueryCPUTime[Timer] = Duration.count();
+	}
+
+	void printTimeQuery(timer Timer)
+	{
+		std::chrono::duration<double, std::milli> const Duration = this->SyncCPUTime[SYNC_RENDER] - this->SyncCPUTime[SYNC_EXEC];
+
+		fprintf(stdout,
+			"%s, times: GPU %2.3f ms-i - %2.3f ms-d, CPU %2.3f ms-i - %2.3f ms-d        \r",
+			::queryTitle[Timer],
+			this->QueryGPUTime[Timer], (this->SyncGPUTime[SYNC_RENDER] - this->SyncGPUTime[SYNC_EXEC] + this->QueryGPUTime[Timer]),
+			this->QueryCPUTime[Timer], Duration.count() + this->QueryCPUTime[Timer]);
+	}
+
 	bool begin()
 	{
 		bool Validated = true;
@@ -117,6 +192,8 @@ private:
 			Validated = initVertexArray();
 		if(Validated)
 			Validated = initQuery();
+
+		syncTimeQuery(SYNC_EXEC);
 
 		return Validated && this->checkError("begin");
 	}
@@ -132,20 +209,21 @@ private:
 
 	bool render()
 	{
+		syncTimeQuery(SYNC_RENDER);
+		beginTimeQuery(TIMER_RENDER);
+
 		glm::ivec2 WindowSize(this->getWindowSize());
 
 		glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.0f);
 		glm::mat4 Model = glm::mat4(1.0f);
 		glm::mat4 MVP = Projection * this->view() * Model;
 
-		// Beginning of the time query
-		glBeginQuery(GL_TIME_ELAPSED, QueryName);
-
 		// Set the display viewport
 		glViewport(0, 0, WindowSize.x, WindowSize.y);
 
-		// Clear color buffer with black
-		glClearBufferfv(GL_COLOR, 0, &glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)[0]);
+		beginTimeQuery(TIMER_CLEAR);
+			glClearBufferfv(GL_COLOR, 0, &glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)[0]);
+		endTimeQuery(TIMER_CLEAR);
 
 		// Bind program
 		glUseProgram(ProgramName);
@@ -153,19 +231,22 @@ private:
 		glUniform4fv(UniformColor, 1, &glm::vec4(1.0f, 0.5f, 0.0f, 1.0f)[0]);
 
 		glBindVertexArray(VertexArrayName);
-		glDrawArrays(GL_TRIANGLES, 0, VertexCount);
+
+		// Beginning of the time query
+		beginTimeQuery(TIMER_DRAW);
+		for(int i = 0; i < 1; ++i)
+			glDrawArrays(GL_TRIANGLES, 0, VertexCount);
+			//glDrawArraysInstanced(GL_TRIANGLES, 0, VertexCount, 100000);
+		endTimeQuery(TIMER_DRAW);
 
 		// Unbind program
 		glUseProgram(0);
 
 		// End of the time query
-		glEndQuery(GL_TIME_ELAPSED);
+		endTimeQuery(TIMER_RENDER);
 
-		// Get the count of samples. 
-		// If the result of the query isn't here yet, we wait here...
-		GLuint Time = 0;
-		glGetQueryObjectuiv(QueryName, GL_QUERY_RESULT, &Time);
-		fprintf(stdout, "Time: %f ms   \r", Time / 1000.f / 1000.f);
+		queryTimeQuery(TIMER_RENDER);
+		printTimeQuery(TIMER_RENDER);
 
 		return true;
 	}
