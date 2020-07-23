@@ -17,14 +17,11 @@ const vec4 Color[] = vec4[3](
 	vec4(0.0f, 1.0f, 0.0f, 1.0f),
 	vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
-out block
-{
-	flat vec4 Color;
-} Out;
+flat out highp vec4 FragColor;
 
 void main()
 {
-	Out.Color = abs(vec4(Position, 1.0));
+	FragColor = abs(vec4(Position, 1.0));
 	gl_Position = Transform.MVP * vec4(Position, 1.0);
 }
 

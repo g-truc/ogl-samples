@@ -5,14 +5,11 @@ precision highp float;
 precision highp int;
 layout(std140, column_major) uniform;
 
-in block
-{
-	flat vec4 Color;
-} In;
+flat in highp vec4 FragColor;
 
 layout(location = FRAG_COLOR) out vec4 Color;
 
 void main()
 {
-	Color = In.Color;
+	Color = FragColor;
 }

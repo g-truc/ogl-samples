@@ -3,7 +3,7 @@ precision highp float;
 
 uniform mat4 MVP;
 
-attribute vec3 Position;
+in vec3 Position;
 
 void main()
 {

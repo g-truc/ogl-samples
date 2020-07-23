@@ -5,9 +5,8 @@ precision highp float;
 precision highp int;
 layout(std140, column_major) uniform;
 
-uniform sampler2D Diffuse;
+uniform highp sampler2D Diffuse;
 
-in vec4 gl_FragCoord;
 layout(location = FRAG_COLOR) out vec4 FragColor;
 
 void main()
