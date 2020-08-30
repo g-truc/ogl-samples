@@ -2,10 +2,12 @@
 
 precision highp float;
 
-uniform sampler2DShadow Shadow;
+uniform highp sampler2DShadow Shadow;
 
-varying vec4 VertexColor;
-varying vec4 ShadowCoord;
+in vec4 VertexColor;
+in vec4 ShadowCoord;
+
+out highp vec4 FragColor;
 
 void main()
 {
@@ -13,5 +15,5 @@ void main()
 	Coord.z -= 0.005;
 
 	float Visibility = mix(0.5, 1.0, texture(Shadow, Coord));
-	gl_FragColor = Visibility * VertexColor;
+	FragColor = Visibility * VertexColor;
 }

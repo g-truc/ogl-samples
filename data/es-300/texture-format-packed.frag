@@ -4,16 +4,13 @@ precision highp float;
 precision highp int;
 layout(std140, column_major) uniform;
 
-uniform sampler2D Diffuse;
+uniform highp sampler2D Diffuse;
 
-in block
-{
-	vec2 Texcoord;
-} In;
+in vec2 FragTexcoord;
 
 out vec4 Color;
 
 void main()
 {
-	Color = texture(Diffuse, In.Texcoord);
+	Color = texture(Diffuse, FragTexcoord);
 }

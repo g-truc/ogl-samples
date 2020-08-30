@@ -5,11 +5,11 @@ precision highp float;
 uniform mat4 MVP;
 uniform mat4 DepthBiasMVP;
 
-attribute vec3 Position;
-attribute vec4 Color;
+in vec3 Position;
+in vec4 Color;
 
-varying vec4 VertexColor;
-varying vec4 ShadowCoord;
+out vec4 VertexColor;
+out vec4 ShadowCoord;
 
 void main()
 {

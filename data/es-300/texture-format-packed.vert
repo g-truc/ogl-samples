@@ -9,13 +9,10 @@ uniform mat4 MVP;
 in vec2 Position;
 in vec2 Texcoord;
 
-out block
-{
-	vec2 Texcoord;
-} Out;
+out vec2 FragTexcoord;
 
 void main()
 {	
-	Out.Texcoord = Texcoord;
+	FragTexcoord = Texcoord;
 	gl_Position = MVP * vec4(Position, 0.0, 1.0);
 }

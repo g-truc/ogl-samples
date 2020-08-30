@@ -6,7 +6,7 @@ uniform vec2 ShadowClipNearFar;
 uniform float Bias;
 
 varying vec3 VertexColor;
-varying vec4 VertexPosition;
+varying vec3 VertexPosition;
 
 void main()
 {
