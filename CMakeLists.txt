@@ -64,6 +64,11 @@ if(MSVC AND CMAKE_CL_64)
 	set(FREEIMAGE_BINARY_DIRECTORY "win64")
 endif()
 
+if(MINGW)
+  set(FREEIMAGE_BINARY_DIRECTORY "win64")
+  MESSAGE(WARNING "x64 version of FREEIMAGE is used by default")
+endif()
+
 if(APPLE)
 	set(FREEIMAGE_BINARY_DIRECTORY "macosx")
 endif()
@@ -80,7 +85,7 @@ set(FREEIMAGE_DIRECTORY FreeImage-3.15.4)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${FREEIMAGE_DIRECTORY})
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/${FREEIMAGE_DIRECTORY}/${FREEIMAGE_BINARY_DIRECTORY})
 
-if(MSVC)
+if(MSVC OR MINGW)
 	set(FREEIMAGE_LIBRARY FreeImage.lib)
 	set(FREEIMAGE_BINARY_FILE FreeImage.dll)
 else()
@@ -200,7 +205,7 @@ add_subdirectory(framework)
 ################################
 # Copy binary
 
-if(MSVC)
+if(MSVC OR MINGW)
 	set(COPY_BINARY copy-binary)
 	add_custom_target(${COPY_BINARY}
 		COMMAND ${CMAKE_COMMAND} -E copy ${FREEIMAGE_BIN_PATH} ${CMAKE_CURRENT_BINARY_DIR}/samples/${FREEIMAGE_BINARY_FILE}
