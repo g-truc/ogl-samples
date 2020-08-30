@@ -107,26 +107,6 @@ private:
 
 	bool initTexture()
 	{
-		SwizzleR[viewport::V00] = GL_RED;
-		SwizzleG[viewport::V00] = GL_GREEN;
-		SwizzleB[viewport::V00] = GL_BLUE;
-		SwizzleA[viewport::V00] = GL_ALPHA;
-
-		SwizzleR[viewport::V10] = GL_BLUE;
-		SwizzleG[viewport::V10] = GL_GREEN;
-		SwizzleB[viewport::V10] = GL_RED;
-		SwizzleA[viewport::V10] = GL_ALPHA;
-
-		SwizzleR[viewport::V11] = GL_ONE;
-		SwizzleG[viewport::V11] = GL_GREEN;
-		SwizzleB[viewport::V11] = GL_BLUE;
-		SwizzleA[viewport::V11] = GL_ALPHA;
-
-		SwizzleR[viewport::V01] = GL_ZERO;
-		SwizzleG[viewport::V01] = GL_GREEN;
-		SwizzleB[viewport::V01] = GL_BLUE;
-		SwizzleA[viewport::V01] = GL_ALPHA;
-
 		gli::texture2d Texture(gli::load_dds((getDataDirectory() + TEXTURE_DIFFUSE).c_str()));
 		gli::gl GL(gli::gl::PROFILE_GL33);
 		gli::gl::format const Format = GL.translate(Texture.format(), Texture.swizzles());
