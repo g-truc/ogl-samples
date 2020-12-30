@@ -8,8 +8,6 @@ precision highp float;
 precision highp int;
 layout(std140, column_major) uniform;
 
-in vec2 gl_PointCoord;
-
 layout(binding = DIFFUSE) uniform sampler2D Diffuse;
 
 layout(location = FRAG_COLOR, index = 0) out vec4 Color;
