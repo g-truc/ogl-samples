@@ -11,7 +11,6 @@ in block
 	vec2 Texcoord;
 } In;
 
-out int gl_SampleMask[];
 out vec4 Color;
 
 void main()
