@@ -4,8 +4,6 @@ precision highp float;
 precision highp int;
 layout(std140, column_major) uniform;
 
-in vec2 gl_PointCoord;
-
 out vec4 Color;
 
 in block

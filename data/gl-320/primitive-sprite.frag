@@ -6,8 +6,6 @@ layout(std140, column_major) uniform;
 
 uniform sampler2D Diffuse;
 
-in vec2 gl_PointCoord;
-
 in block
 {
 	vec3 Color;
