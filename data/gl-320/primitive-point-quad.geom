@@ -17,18 +17,6 @@ uniform mat4 MVP;
 uniform mat4 MV;
 uniform vec3 CameraPosition;
 
-in gl_PerVertex
-{
-	vec4 gl_Position;
-	float gl_PointSize;
-} gl_in[];
-
-out gl_PerVertex
-{
-	vec4 gl_Position;
-	float gl_PointSize;
-};
-
 in block
 {
 	vec4 Color;
