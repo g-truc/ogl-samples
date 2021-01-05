@@ -30,11 +30,6 @@ layout(location = POSITION) in vec2 Position;
 layout(location = TEXCOORD) in vec2 Texcoord;
 layout(location = DRAW_ID) in int DrawID;
 
-out gl_PerVertex
-{
-	vec4 gl_Position;
-};
-
 out block
 {
 	vec2 Texcoord;

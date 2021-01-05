@@ -18,11 +18,6 @@ const vec3 ConstNormal = vec3(0, 0, 1);
 
 layout(location = POSITION) in vec2 Position;
 
-out gl_PerVertex
-{
-	vec4 gl_Position;
-};
-
 out block
 {
 	vec3 Reflect;

@@ -15,11 +15,6 @@ uniform transform
 	mat4 MVP;
 } Transform[2];
 
-out gl_PerVertex
-{
-	vec4 gl_Position;
-};
-
 out block
 {
 	flat int Instance;
